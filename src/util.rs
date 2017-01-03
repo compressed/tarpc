@@ -6,8 +6,8 @@
 use futures::{self, Future, Poll};
 use futures::stream::Stream;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use std::error::Error;
 use std::{fmt, io, thread};
+use std::error::Error;
 use std::net::{SocketAddr, ToSocketAddrs};
 use std::sync::mpsc;
 use tokio_core::reactor;
@@ -109,10 +109,10 @@ pub trait FirstSocketAddr: ToSocketAddrs {
     /// Returns the first resolved `SocketAddr`, if one exists.
     fn try_first_socket_addr(&self) -> io::Result<SocketAddr> {
         if let Some(a) = self.to_socket_addrs()?.next() {
-             Ok(a)
+            Ok(a)
         } else {
-             Err(io::Error::new(io::ErrorKind::AddrNotAvailable,
-                                "`ToSocketAddrs::to_socket_addrs` returned an empty iterator."))
+            Err(io::Error::new(io::ErrorKind::AddrNotAvailable,
+                               "`ToSocketAddrs::to_socket_addrs` returned an empty iterator."))
         }
     }
 

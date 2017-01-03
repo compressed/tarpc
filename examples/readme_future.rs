@@ -11,8 +11,8 @@ extern crate futures;
 extern crate tarpc;
 
 use futures::Future;
-use tarpc::util::{FirstSocketAddr, Never};
 use tarpc::sync::Connect;
+use tarpc::util::{FirstSocketAddr, Never};
 
 service! {
     rpc hello(name: String) -> String;

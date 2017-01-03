@@ -15,8 +15,8 @@ extern crate tarpc;
 extern crate tokio_core;
 
 use futures::Future;
-use tarpc::util::Never;
 use tarpc::future::Connect;
+use tarpc::util::Never;
 
 service! {
     rpc hello(name: String) -> String;
@@ -41,15 +41,13 @@ fn main() {
         .and_then(|client| {
             let resp1 = client.hello("Mom".to_string());
             info!("Sent first request.");
-            /*
-            let resp2 = client.hello("Dad".to_string());
-            info!("Sent second request.");
-            */
-            futures::collect(vec![resp1, /*resp2*/])
-        }).map(|responses| {
-            for resp in responses {
-                println!("{}", resp);
-            }
+            // let resp2 = client.hello("Dad".to_string());
+            // info!("Sent second request.");
+            //
+            futures::collect(vec![resp1 /* resp2 */])
+        })
+        .map(|responses| for resp in responses {
+            println!("{}", resp);
         });
     core.run(f).unwrap();
 }

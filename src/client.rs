@@ -18,7 +18,8 @@ type WireResponse<Resp, E> = Result<Result<Resp, WireError<E>>, DeserializeError
 type ResponseFuture<Req, Resp, E> = futures::Map<<BindClient<Req, Resp, E> as Service>::Future,
                                             fn(WireResponse<Resp, E>) -> Result<Resp, ::Error<E>>>;
 type BindClient<Req, Resp, E> =
-    <framed::Proto<Req, Result<Resp, WireError<E>>> as ProtoBindClient<Multiplex, TcpStream>>::BindClient;
+    <framed::Proto<Req, Result<Resp, WireError<E>>> as
+    ProtoBindClient<Multiplex, TcpStream>>::BindClient;
 
 /// A client that impls `tokio_service::Service` that writes and reads bytes.
 ///
@@ -27,7 +28,7 @@ type BindClient<Req, Resp, E> =
 pub struct Client<Req, Resp, E>
     where Req: Serialize + 'static,
           Resp: Deserialize + 'static,
-          E: Deserialize + 'static,
+          E: Deserialize + 'static
 {
     inner: BindClient<Req, Resp, E>,
 }
@@ -50,16 +51,14 @@ impl<Req, Resp, E> Service for Client<Req, Resp, E>
 impl<Req, Resp, E> Client<Req, Resp, E>
     where Req: Serialize + 'static,
           Resp: Deserialize + 'static,
-          E: Deserialize + 'static,
+          E: Deserialize + 'static
 {
     fn new(inner: BindClient<Req, Resp, E>) -> Self
         where Req: Serialize + Sync + Send + 'static,
               Resp: Deserialize + Sync + Send + 'static,
               E: Deserialize + Sync + Send + 'static
     {
-        Client {
-            inner: inner,
-        }
+        Client { inner: inner }
     }
 
     fn map_err(resp: WireResponse<Resp, E>) -> Result<Resp, ::Error<E>> {
@@ -72,7 +71,7 @@ impl<Req, Resp, E> Client<Req, Resp, E>
 impl<Req, Resp, E> fmt::Debug for Client<Req, Resp, E>
     where Req: Serialize + 'static,
           Resp: Deserialize + 'static,
-          E: Deserialize + 'static,
+          E: Deserialize + 'static
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         write!(f, "Client {{ .. }}")
@@ -88,8 +87,8 @@ pub mod future {
     use std::marker::PhantomData;
     use std::net::SocketAddr;
     use super::Client;
-    use tokio_core::net::TcpStream;
     use tokio_core::{self, reactor};
+    use tokio_core::net::TcpStream;
     use tokio_proto::BindClient;
 
     /// Types that can connect to a server asynchronously.
@@ -117,7 +116,7 @@ pub mod future {
     pub struct ConnectFuture<Req, Resp, E>
         where Req: Serialize + 'static,
               Resp: Deserialize + 'static,
-              E: Deserialize + 'static,
+              E: Deserialize + 'static
     {
         inner: futures::Oneshot<io::Result<Client<Req, Resp, E>>>,
     }
@@ -125,7 +124,7 @@ pub mod future {
     impl<Req, Resp, E> Future for ConnectFuture<Req, Resp, E>
         where Req: Serialize + 'static,
               Resp: Deserialize + 'static,
-              E: Deserialize + 'static,
+              E: Deserialize + 'static
     {
         type Item = Client<Req, Resp, E>;
         type Error = io::Error;
@@ -142,8 +141,7 @@ pub mod future {
 
     /// A future that resolves to a `Client` or an `io::Error`.
     pub struct ConnectWithFuture<'a, Req, Resp, E> {
-        inner: futures::Map<tokio_core::net::TcpStreamNew,
-                            MultiplexConnect<'a, Req, Resp, E>>,
+        inner: futures::Map<tokio_core::net::TcpStreamNew, MultiplexConnect<'a, Req, Resp, E>>,
     }
 
     impl<'a, Req, Resp, E> Future for ConnectWithFuture<'a, Req, Resp, E>
@@ -204,7 +202,7 @@ pub mod future {
 
         fn connect_with(addr: &SocketAddr, handle: &'a reactor::Handle) -> Self::ConnectWithFut {
             ConnectWithFuture {
-                inner: TcpStream::connect(addr, handle).map(MultiplexConnect::new(handle))
+                inner: TcpStream::connect(addr, handle).map(MultiplexConnect::new(handle)),
             }
         }
     }

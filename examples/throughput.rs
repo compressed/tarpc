@@ -13,12 +13,12 @@ extern crate tarpc;
 extern crate env_logger;
 extern crate futures;
 
-use std::sync::Arc;
+use futures::Future;
+use std::io::{Read, Write, stdout};
 use std::net;
+use std::sync::Arc;
 use std::thread;
 use std::time;
-use std::io::{Read, Write, stdout};
-use futures::Future;
 use tarpc::sync::Connect;
 use tarpc::util::{FirstSocketAddr, Never};
 

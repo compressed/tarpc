@@ -14,12 +14,12 @@ extern crate tokio_proto as tokio;
 
 use futures::{BoxFuture, Future};
 use publisher::FutureServiceExt as PublisherExt;
-use subscriber::FutureServiceExt as SubscriberExt;
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
+use subscriber::FutureServiceExt as SubscriberExt;
 use tarpc::future::Connect as Fc;
 use tarpc::sync::Connect as Sc;
 use tarpc::util::{FirstSocketAddr, Message, Never};
@@ -57,12 +57,10 @@ impl subscriber::FutureService for Subscriber {
 
 impl Subscriber {
     fn new(id: u32) -> SocketAddr {
-        Subscriber {
-            id: id,
-        }
-        .listen("localhost:0".first_socket_addr())
-        .wait()
-        .unwrap()
+        Subscriber { id: id }
+            .listen("localhost:0".first_socket_addr())
+            .wait()
+            .unwrap()
     }
 }
 
@@ -88,8 +86,8 @@ impl publisher::FutureService for Publisher {
                              // Ignore failing subscribers.
                              .map(move |client| client.receive(message.clone()).then(|_| Ok(())))
                              .collect::<Vec<_>>())
-                             .map(|_| ())
-                             .boxed()
+            .map(|_| ())
+            .boxed()
     }
 
     type SubscribeFut = BoxFuture<(), Message>;

@@ -10,8 +10,8 @@ use std::io::{self, Cursor};
 use std::marker::PhantomData;
 use std::mem;
 use tokio_core::io::{EasyBuf, Framed, Io};
-use tokio_proto::streaming::multiplex::{self, RequestId};
 use tokio_proto::multiplex::{ClientProto, ServerProto};
+use tokio_proto::streaming::multiplex::{self, RequestId};
 use util::{Debugger, Never};
 
 /// The type of message sent and received by the transport.
@@ -41,7 +41,7 @@ impl<Req, Resp> Codec<Req, Resp> {
 
 impl<Req, Resp> tokio_core::io::Codec for Codec<Req, Resp>
     where Req: serde::Deserialize,
-          Resp: serde::Serialize,
+          Resp: serde::Serialize
 {
     type Out = (RequestId, Resp);
     type In = (RequestId, Result<Req, bincode::DeserializeError>);
@@ -67,7 +67,7 @@ impl<Req, Resp> tokio_core::io::Codec for Codec<Req, Resp>
             match self.state {
                 Id if buf.len() < mem::size_of::<u64>() => {
                     trace!("--> Buf len is {}; waiting for 8 to parse id.", buf.len());
-                    return Ok(None)
+                    return Ok(None);
                 }
                 Id => {
                     let mut id_buf = buf.drain_to(mem::size_of::<u64>());
@@ -76,22 +76,23 @@ impl<Req, Resp> tokio_core::io::Codec for Codec<Req, Resp>
                     self.state = Len { id: id };
                 }
                 Len { .. } if buf.len() < mem::size_of::<u64>() => {
-                    trace!("--> Buf len is {}; waiting for 8 to parse packet length.", buf.len());
-                    return Ok(None)
+                    trace!("--> Buf len is {}; waiting for 8 to parse packet length.",
+                           buf.len());
+                    return Ok(None);
                 }
                 Len { id } => {
                     let len_buf = buf.drain_to(mem::size_of::<u64>());
                     let len = Cursor::new(len_buf).read_u64::<BigEndian>()?;
                     trace!("--> Parsed payload length = {}, remaining buffer length = {}",
-                           len, buf.len());
-                    self.state = Payload {
-                        id: id,
-                        len: len,
-                    };
+                           len,
+                           buf.len());
+                    self.state = Payload { id: id, len: len };
                 }
                 Payload { len, .. } if buf.len() < len as usize => {
-                    trace!("--> Buf len is {}; waiting for {} to parse payload.", buf.len(), len);
-                    return Ok(None)
+                    trace!("--> Buf len is {}; waiting for {} to parse payload.",
+                           buf.len(),
+                           len);
+                    return Ok(None);
                 }
                 Payload { id, len } => {
                     let payload = buf.drain_to(len as usize);
@@ -122,7 +123,7 @@ impl<Req, Resp> Proto<Req, Resp> {
 impl<T, Req, Resp> ServerProto<T> for Proto<Req, Resp>
     where T: Io + 'static,
           Req: serde::Deserialize + 'static,
-          Resp: serde::Serialize + 'static,
+          Resp: serde::Serialize + 'static
 {
     type Response = Resp;
     type Request = Result<Req, bincode::DeserializeError>;
@@ -138,7 +139,7 @@ impl<T, Req, Resp> ServerProto<T> for Proto<Req, Resp>
 impl<T, Req, Resp> ClientProto<T> for Proto<Req, Resp>
     where T: Io + 'static,
           Req: serde::Serialize + 'static,
-          Resp: serde::Deserialize + 'static,
+          Resp: serde::Deserialize + 'static
 {
     type Response = Result<Resp, bincode::DeserializeError>;
     type Request = Req;
@@ -164,8 +165,8 @@ fn serialize() {
         let mut codec: Codec<(char, char, char), (char, char, char)> = Codec::new();
         codec.encode(MSG, &mut vec).unwrap();
         buf.get_mut().append(&mut vec);
-        let actual: Result<Option<(u64, Result<(char, char, char), bincode::DeserializeError>)>, io::Error> =
-            codec.decode(&mut buf);
+        let actual: Result<Option<(u64, Result<(char, char, char), bincode::DeserializeError>)>,
+                           io::Error> = codec.decode(&mut buf);
 
         match actual {
             Ok(Some((id, ref v))) if id == MSG.0 && *v.as_ref().unwrap() == MSG.1 => {}

@@ -23,7 +23,7 @@ use futures_cpupool::{CpuFuture, CpuPool};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{Duration, Instant, SystemTime};
-use tarpc::future::{Connect};
+use tarpc::future::Connect;
 use tarpc::util::{FirstSocketAddr, Never, spawn_core};
 use tokio_core::reactor;
 
@@ -72,14 +72,14 @@ trait Microseconds {
 
 impl Microseconds for Duration {
     fn microseconds(&self) -> i64 {
-         chrono::Duration::from_std(*self)
-             .unwrap()
-             .num_microseconds()
-             .unwrap()
+        chrono::Duration::from_std(*self)
+            .unwrap()
+            .num_microseconds()
+            .unwrap()
     }
 }
 
-fn run_once(clients: Vec<FutureClient>, concurrency: u32) -> impl Future<Item=(), Error=()> {
+fn run_once(clients: Vec<FutureClient>, concurrency: u32) -> impl Future<Item = (), Error = ()> {
     let start = Instant::now();
     let futs = clients.iter()
         .enumerate()
@@ -103,39 +103,40 @@ fn run_once(clients: Vec<FutureClient>, concurrency: u32) -> impl Future<Item=()
     let futs = futures::collect(futs);
 
     futs.map(move |latencies| {
-        let total_time = start.elapsed();
+            let total_time = start.elapsed();
 
-        let sum_latencies = latencies.iter().fold(Duration::new(0, 0), |sum, &dur| sum + dur);
-        let mean = sum_latencies / latencies.len() as u32;
-        let min_latency = *latencies.iter().min().unwrap();
-        let max_latency = *latencies.iter().max().unwrap();
+            let sum_latencies = latencies.iter().fold(Duration::new(0, 0), |sum, &dur| sum + dur);
+            let mean = sum_latencies / latencies.len() as u32;
+            let min_latency = *latencies.iter().min().unwrap();
+            let max_latency = *latencies.iter().max().unwrap();
 
-        info!("{} requests => Mean={}µs, Min={}µs, Max={}µs, Total={}µs",
-                 latencies.len(),
-                 mean.microseconds(),
-                 min_latency.microseconds(),
-                 max_latency.microseconds(),
-                 total_time.microseconds());
-    }).map_err(|e| panic!(e))
+            info!("{} requests => Mean={}µs, Min={}µs, Max={}µs, Total={}µs",
+                  latencies.len(),
+                  mean.microseconds(),
+                  min_latency.microseconds(),
+                  max_latency.microseconds(),
+                  total_time.microseconds());
+        })
+        .map_err(|e| panic!(e))
 }
 
 fn main() {
     let _ = env_logger::init();
     let matches = App::new("Tarpc Concurrency")
-                          .about("Demonstrates making concurrent requests to a tarpc service.")
-                          .arg(Arg::with_name("concurrency")
-                               .short("c")
-                               .long("concurrency")
-                               .value_name("LEVEL")
-                               .help("Sets a custom concurrency level")
-                               .takes_value(true))
-                          .arg(Arg::with_name("clients")
-                               .short("n")
-                               .long("num_clients")
-                               .value_name("AMOUNT")
-                               .help("How many clients to distribute requests between")
-                               .takes_value(true))
-                          .get_matches();
+        .about("Demonstrates making concurrent requests to a tarpc service.")
+        .arg(Arg::with_name("concurrency")
+            .short("c")
+            .long("concurrency")
+            .value_name("LEVEL")
+            .help("Sets a custom concurrency level")
+            .takes_value(true))
+        .arg(Arg::with_name("clients")
+            .short("n")
+            .long("num_clients")
+            .value_name("AMOUNT")
+            .help("How many clients to distribute requests between")
+            .takes_value(true))
+        .get_matches();
     let concurrency = matches.value_of("concurrency")
         .map(&str::parse)
         .map(Result::unwrap)

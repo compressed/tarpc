@@ -49,27 +49,27 @@ pub fn listen_with<S, Req, Resp, E>(addr: SocketAddr,
     let addr = listener.local_addr()?;
 
     let handle2 = handle.clone();
-    let server = listener.incoming().for_each(move |(socket, _)| {
-        Proto::new().bind_server(&handle2, socket, new_service.new_service()?);
+    let server = listener.incoming()
+        .for_each(move |(socket, _)| {
+            Proto::new().bind_server(&handle2, socket, new_service.new_service()?);
 
-        Ok(())
-    }).map_err(|e| error!("While processing incoming connections: {}", e));
+            Ok(())
+        })
+        .map_err(|e| error!("While processing incoming connections: {}", e));
     handle.spawn(server);
     Ok(addr)
 }
 
-fn listener(addr: &SocketAddr,
-            handle: &Handle) -> io::Result<TcpListener> {
+fn listener(addr: &SocketAddr, handle: &Handle) -> io::Result<TcpListener> {
     match *addr {
-        SocketAddr::V4(_) => net2::TcpBuilder::new_v4(),
-        SocketAddr::V6(_) => net2::TcpBuilder::new_v6()
-    }?
-    .reuse_address(true)?
-    .bind(addr)?
-    .listen(1024)
-    .and_then(|l| {
-        TcpListener::from_listener(l, addr, handle)
-    })
+            SocketAddr::V4(_) => net2::TcpBuilder::new_v4(),
+            SocketAddr::V6(_) => net2::TcpBuilder::new_v6(),
+        }
+        ?
+        .reuse_address(true)?
+        .bind(addr)?
+        .listen(1024)
+        .and_then(|l| TcpListener::from_listener(l, addr, handle))
 }
 
 /// A future that resolves to a `ServerHandle`.

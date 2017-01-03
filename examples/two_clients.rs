@@ -17,8 +17,8 @@ extern crate futures;
 use bar::FutureServiceExt as BarExt;
 use baz::FutureServiceExt as BazExt;
 use futures::Future;
-use tarpc::util::{FirstSocketAddr, Never};
 use tarpc::sync::Connect;
+use tarpc::util::{FirstSocketAddr, Never};
 
 mod bar {
     service! {

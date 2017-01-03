@@ -31,7 +31,7 @@ use tokio_service::Service;
 struct HelloServer;
 
 impl HelloServer {
-    fn listen(addr: SocketAddr) -> impl Future<Item=SocketAddr, Error=io::Error> {
+    fn listen(addr: SocketAddr) -> impl Future<Item = SocketAddr, Error = io::Error> {
         let (tx, rx) = futures::oneshot();
         tarpc::REMOTE.spawn(move |handle| {
             Ok(tx.complete(tarpc::listen_with(addr, move || Ok(HelloServer), handle.clone())))
@@ -60,9 +60,9 @@ impl FutureClient {
         tarpc::Client::connect_remotely(addr, &tarpc::REMOTE).map(FutureClient)
     }
 
-    pub fn hello(&self, name: String)
-        -> impl Future<Item = String, Error = tarpc::Error<Never>> + 'static
-    {
+    pub fn hello(&self,
+                 name: String)
+                 -> impl Future<Item = String, Error = tarpc::Error<Never>> + 'static {
         self.0.call(name).then(|msg| msg.unwrap())
     }
 }
@@ -82,10 +82,8 @@ fn main() {
 
             futures::collect(vec![resp1, resp2])
         })
-        .map(|responses| {
-            for resp in responses {
-                println!("{}", resp);
-            }
+        .map(|responses| for resp in responses {
+            println!("{}", resp);
         });
     core.run(f).unwrap();
 }

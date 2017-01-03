@@ -14,10 +14,10 @@ extern crate env_logger;
 extern crate futures;
 
 use futures::Future;
-#[cfg(test)]
-use test::Bencher;
 use tarpc::sync::Connect;
 use tarpc::util::{FirstSocketAddr, Never};
+#[cfg(test)]
+use test::Bencher;
 
 service! {
     rpc ack();
@@ -40,7 +40,5 @@ fn latency(bencher: &mut Bencher) {
     let server = Server.listen("localhost:0".first_socket_addr()).wait().unwrap();
     let client = SyncClient::connect(server.local_addr()).unwrap();
 
-    bencher.iter(|| {
-        client.ack().unwrap();
-    });
+    bencher.iter(|| { client.ack().unwrap(); });
 }

@@ -543,7 +543,8 @@ macro_rules! service {
             {
                 let addr = $crate::util::FirstSocketAddr::try_first_socket_addr(&addr)?;
                 let (tx, rx) = $crate::futures::oneshot();
-                $crate::REMOTE.spawn(move |handle| Ok(tx.complete(Self::listen_with(self, addr, handle.clone()))));
+                $crate::REMOTE.spawn(move |handle| Ok(tx.complete(
+                            Self::listen_with(self, addr, handle.clone()))));
                 $crate::futures::Future::wait($crate::ListenFuture::from_oneshot(rx))
             }
 
@@ -843,7 +844,8 @@ mod functional_test {
         fn other_service() {
             let _ = env_logger::init();
             let addr = Server.listen("localhost:0".first_socket_addr()).unwrap();
-            let client = super::other_service::SyncClient::connect(addr).expect("Could not connect!");
+            let client = super::other_service::SyncClient::connect(addr)
+                .expect("Could not connect!");
             match client.foo().err().unwrap() {
                 ::Error::ServerDeserialize(_) => {} // good
                 bad => panic!("Expected Error::ServerDeserialize but got {}", bad),
@@ -902,8 +904,7 @@ mod functional_test {
         fn other_service() {
             let _ = env_logger::init();
             let addr = Server.listen("localhost:0".first_socket_addr()).wait().unwrap();
-            let client =
-                super::other_service::FutureClient::connect(&addr).wait().unwrap();
+            let client = super::other_service::FutureClient::connect(&addr).wait().unwrap();
             match client.foo().wait().err().unwrap() {
                 ::Error::ServerDeserialize(_) => {} // good
                 bad => panic!(r#"Expected Error::ServerDeserialize but got "{}""#, bad),
