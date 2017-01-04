@@ -24,13 +24,13 @@ struct HelloServer;
 impl FutureService for HelloServer {
     type HelloFut = futures::Finished<String, Never>;
 
-    fn hello(&self, name: String) -> Self::HelloFut {
+    fn hello(&mut self, name: String) -> Self::HelloFut {
         futures::finished(format!("Hello, {}!", name))
     }
 }
 
 fn main() {
     let addr = HelloServer.listen("localhost:10000".first_socket_addr()).wait().unwrap();
-    let client = SyncClient::connect(addr).unwrap();
+    let mut client = SyncClient::connect(addr).unwrap();
     println!("{}", client.hello("Mom".to_string()).unwrap());
 }

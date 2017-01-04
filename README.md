@@ -62,7 +62,7 @@ service! {
 struct HelloServer;
 
 impl SyncService for HelloServer {
-    fn hello(&self, name: String) -> Result<String, Never> {
+    fn hello(&mut self, name: String) -> Result<String, Never> {
         Ok(format!("Hello, {}!", name))
     }
 }
@@ -70,7 +70,7 @@ impl SyncService for HelloServer {
 fn main() {
     let addr = "localhost:10000";
     HelloServer.listen(addr).unwrap();
-    let client = SyncClient::connect(addr).unwrap();
+    let mut client = SyncClient::connect(addr).unwrap();
     println!("{}", client.hello("Mom".to_string()).unwrap());
 }
 ```
@@ -110,7 +110,7 @@ struct HelloServer;
 impl FutureService for HelloServer {
     type HelloFut = futures::Finished<String, Never>;
 
-    fn hello(&self, name: String) -> Self::HelloFut {
+    fn hello(&mut self, name: String) -> Self::HelloFut {
         futures::finished(format!("Hello, {}!", name))
     }
 }

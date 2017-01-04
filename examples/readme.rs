@@ -26,7 +26,7 @@ service! {
 struct HelloServer;
 
 impl SyncService for HelloServer {
-    fn hello(&self, name: String) -> Result<String, Never> {
+    fn hello(&mut self, name: String) -> Result<String, Never> {
         info!("Got request: {}", name);
         Ok(format!("Hello, {}!", name))
     }
@@ -38,7 +38,7 @@ fn main() {
     let addr = HelloServer.listen("localhost:10000").unwrap();
     let f = FutureClient::connect(&addr)
         .map_err(tarpc::Error::from)
-        .and_then(|client| {
+        .and_then(|mut client| {
             let resp1 = client.hello("Mom".to_string());
             info!("Sent first request.");
             // let resp2 = client.hello("Dad".to_string());

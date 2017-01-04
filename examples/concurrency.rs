@@ -20,6 +20,7 @@ extern crate futures_cpupool;
 use clap::{Arg, App};
 use futures::Future;
 use futures_cpupool::{CpuFuture, CpuPool};
+use std::cell::UnsafeCell;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{Duration, Instant, SystemTime};
@@ -49,7 +50,7 @@ impl Server {
 impl FutureService for Server {
     type ReadFut = CpuFuture<Vec<u8>, Never>;
 
-    fn read(&self, size: u32) -> Self::ReadFut {
+    fn read(&mut self, size: u32) -> Self::ReadFut {
         let request_number = self.request_count.fetch_add(1, Ordering::SeqCst);
         debug!("Server received read({}) no. {}", size, request_number);
         self.pool
@@ -81,6 +82,7 @@ impl Microseconds for Duration {
 
 fn run_once(clients: Vec<FutureClient>, concurrency: u32) -> impl Future<Item = (), Error = ()> {
     let start = Instant::now();
+    let clients: Vec<_> = clients.into_iter().map(UnsafeCell::new).collect();
     let futs = clients.iter()
         .enumerate()
         .cycle()
@@ -90,12 +92,14 @@ fn run_once(clients: Vec<FutureClient>, concurrency: u32) -> impl Future<Item = 
             let iteration = iteration + 1;
             let start = SystemTime::now();
             debug!("Client {} reading (iteration {})...", client_id, iteration);
-            let future = client.read(CHUNK_SIZE).map(move |_| {
-                let elapsed = start.elapsed().unwrap();
-                debug!("Client {} received reply (iteration {}).", client_id, iteration);
-                elapsed
-            });
-            future
+            unsafe {
+                let future = (*client.get()).read(CHUNK_SIZE).map(move |_| {
+                    let elapsed = start.elapsed().unwrap();
+                    debug!("Client {} received reply (iteration {}).", client_id, iteration);
+                    elapsed
+                });
+                future
+            }
         })
         // Need an intermediate collection to kick off each future,
         // because futures::collect will iterate sequentially.
