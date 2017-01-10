@@ -32,7 +32,7 @@ cfg_if! {
 pub type Response<T, E> = Result<T, WireError<E>>;
 
 /// Enables service spawning
-pub trait Listen<IO: Io>: Sized + Send + 'static {
+pub trait Listen: Sized + Send + 'static {
     /// Spawns a service that binds to the given address and runs on the default reactor core.
     fn listen<S, Req, Resp, E>(self, addr: SocketAddr, new_service: S) -> ListenFuture
         where S: NewService<Request = Result<Req, DeserializeError>,
@@ -63,9 +63,7 @@ pub trait Listen<IO: Io>: Sized + Send + 'static {
               E: Serialize + 'static;
 }
 
-impl<IO> Listen<IO> for Config<Tcp>
-    where IO: Io
-{
+impl Listen for Config<Tcp> {
     fn listen_with<S, Req, Resp, E>(self,
                                     addr: SocketAddr,
                                     new_service: S,
@@ -95,7 +93,7 @@ impl<IO> Listen<IO> for Config<Tcp>
 }
 
 #[cfg(feature = "tls")]
-impl Listen<Tls> for Config<Tls> {
+impl Listen for Config<Tls> {
     fn listen_with<S, Req, Resp, E>(self,
                                     addr: SocketAddr,
                                     new_service: S,

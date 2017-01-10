@@ -396,7 +396,7 @@ macro_rules! service {
             fn listen<S>(self, addr: ::std::net::SocketAddr, config: $crate::ServerConfig<S>)
                  -> $crate::ListenFuture
                      where S: $crate::tokio_core::io::Io + 'static,
-                           $crate::ServerConfig<S>: $crate::Listen<S>
+                           $crate::ServerConfig<S>: $crate::Listen
             {
                 let (tx, rx) = $crate::futures::oneshot();
                 $crate::future::REMOTE.spawn(move |handle|
@@ -414,7 +414,7 @@ macro_rules! service {
                            config: $crate::ServerConfig<S>)
                 -> ::std::io::Result<::std::net::SocketAddr>
                      where S: $crate::tokio_core::io::Io + 'static,
-                           $crate::ServerConfig<S>: $crate::Listen<S>
+                           $crate::ServerConfig<S>: $crate::Listen
             {
                 return $crate::Listen::listen_with(config, addr,
                                            move || Ok(__tarpc_service_AsyncServer(self.clone())),
@@ -546,7 +546,7 @@ macro_rules! service {
                 -> ::std::io::Result<::std::net::SocketAddr>
                 where L: ::std::net::ToSocketAddrs,
                       S: $crate::tokio_core::io::Io,
-                      $crate::ServerConfig<S>: $crate::Listen<S>
+                      $crate::ServerConfig<S>: $crate::Listen
             {
                 let addr = $crate::util::FirstSocketAddr::try_first_socket_addr(&addr)?;
                 let (tx, rx) = $crate::futures::oneshot();
@@ -560,7 +560,7 @@ macro_rules! service {
                 -> ::std::io::Result<::std::net::SocketAddr>
                 where L: ::std::net::ToSocketAddrs,
                       S: $crate::tokio_core::io::Io,
-                      $crate::ServerConfig<S>: $crate::Listen<S>
+                      $crate::ServerConfig<S>: $crate::Listen
             {
                 let __tarpc_service_service = __SyncServer {
                     service: self,
