@@ -167,7 +167,7 @@ cfg_if! {
         extern crate tokio_tls;
         pub extern crate native_tls;
 
-        pub use client::TlsClientContext;
+        pub use client::tls::TlsClientContext;
     } else {}
 }
 
