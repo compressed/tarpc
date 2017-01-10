@@ -25,7 +25,7 @@ serde_derive = "0.8"
 tarpc-plugins = { path = "src/plugins" }
 take = "0.1"
 tokio-service = { git = "https://github.com/tokio-rs/tokio-service" }
-tokio-proto = { git = "https://github.com/tokio-rs/tokio-proto" }
+tokio-proto = { git = "https://github.com/tokio-rs/tokio-proto", rev = "cdbdb11f3349a5a540cf8ddb60431ebbca4be712" }
 tokio-core = { git = "https://github.com/tokio-rs/tokio-core" }
 
 [replace]

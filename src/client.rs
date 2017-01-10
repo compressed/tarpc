@@ -47,9 +47,10 @@ pub mod tls {
     }
 
     impl Config<TlsStream<TcpStream>> {
+        /// Construct a new `Config<TlsStream<TcpStream>>`
         pub fn new_tls(tls_client_cx: TlsClientContext) -> Self {
             Config {
-                _io: PhantomData,
+                _stream: PhantomData,
                 tls_client_cx: Some(tls_client_cx),
             }
         }
@@ -66,7 +67,7 @@ pub mod tls {
         type Future = futures::Map<<BindClient<Req, Resp, E, TlsStream<TcpStream>> as Service>::Future,
                      fn(WireResponse<Resp, E>) -> Result<Resp, ::Error<E>>>;
 
-        fn call(&mut self, request: Self::Request) -> Self::Future {
+        fn call(&self, request: Self::Request) -> Self::Future {
             self.inner.call(request).map(Self::map_err)
         }
     }
@@ -110,7 +111,7 @@ impl<Req, Resp, E> Service for Client<Req, Resp, E, TcpStream>
     type Future = futures::Map<<BindClient<Req, Resp, E, TcpStream> as Service>::Future,
                  fn(WireResponse<Resp, E>) -> Result<Resp, ::Error<E>>>;
 
-    fn call(&mut self, request: Self::Request) -> Self::Future {
+    fn call(&self, request: Self::Request) -> Self::Future {
         self.inner.call(request).map(Self::map_err)
     }
 }
@@ -150,18 +151,19 @@ impl<Req, Resp, E, S> fmt::Debug for Client<Req, Resp, E, S>
 
 /// TODO:
 pub struct Config<S>
-    where S: Io + 'static
+    where S: Io
 {
-    _io: PhantomData<S>,
+    _stream: PhantomData<S>,
     #[cfg(feature = "tls")]
     tls_client_cx: Option<TlsClientContext>,
 }
 
 #[cfg(feature = "tls")]
 impl Config<TcpStream> {
+    /// Construct a new `Config<TcpStream>`
     pub fn new_tcp() -> Self {
         Config {
-            _io: PhantomData,
+            _stream: PhantomData,
             tls_client_cx: None,
         }
     }
@@ -169,8 +171,9 @@ impl Config<TcpStream> {
 
 #[cfg(not(feature = "tls"))]
 impl Config<TcpStream> {
+    /// Construct a new `Config<TcpStream>`
     pub fn new_tcp() -> Self {
-        Config { _io: PhantomData }
+        Config { _stream: PhantomData }
     }
 }
 
@@ -367,30 +370,6 @@ pub mod future {
         }
     }
 
-    // impl<'a, Req, Resp, E> FnOnce<(TlsStream<TcpStream>,)> for MultiplexConnect<'a, Req, Resp, E>
-    //     where Req: Serialize + Sync + Send + 'static,
-    //           Resp: Deserialize + Sync + Send + 'static,
-    //           E: Deserialize + Sync + Send + 'static
-    // {
-    //     type Output = Client<Req, Resp, E, TlsStream<TcpStream>>;
-    //
-    //     extern "rust-call" fn call_once(self, (tcp,): (TlsStream<TcpStream>,)) -> Self::Output {
-    //         Client::new(Proto::new().bind_client(self.0, tcp))
-    //     }
-    // }
-    //
-    // impl<'a, Req, Resp, E> FnOnce<(TcpStream,)> for MultiplexConnect<'a, Req, Resp, E>
-    //     where Req: Serialize + Sync + Send + 'static,
-    //           Resp: Deserialize + Sync + Send + 'static,
-    //           E: Deserialize + Sync + Send + 'static
-    // {
-    //     type Output = Client<Req, Resp, E, TcpStream>;
-    //
-    //     extern "rust-call" fn call_once(self, (tcp,): (TcpStream,)) -> Self::Output {
-    //         Client::new(Proto::new().bind_client(self.0, tcp))
-    //     }
-    // }
-    //
     impl<'a, Req, Resp, E, S> FnOnce<(S,)> for MultiplexConnect<'a, Req, Resp, E>
         where Req: Serialize + Sync + Send + 'static,
               Resp: Deserialize + Sync + Send + 'static,

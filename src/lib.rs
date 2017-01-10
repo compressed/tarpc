@@ -61,7 +61,7 @@
 //!
 //! Example usage with TLS:
 //!
-#![cfg_attr(feature = "tls", doc = " ```rust,no_run")]
+#![cfg_attr(feature = "tls", doc = " ```ignore,rust,no_run")]
 #![cfg_attr(not(feature = "tls"), doc = " ```ignore")]
 //! // required by `FutureClient` (not used in this example)
 //! #![feature(conservative_impl_trait, plugin)]
@@ -137,13 +137,17 @@ pub extern crate tokio_service;
 
 #[doc(hidden)]
 pub use client::Client;
+pub use client::Config as ClientConfig;
 #[doc(hidden)]
 pub use client::future::{ConnectFuture, ConnectWithFuture};
 pub use errors::{Error, SerializableError};
 #[doc(hidden)]
 pub use errors::WireError;
 #[doc(hidden)]
-pub use server::{ListenFuture, Response, listen, listen_with};
+pub use server::{ListenFuture, Response, Listen};
+pub use server::Config as ServerConfig;
+/// TcpStream
+pub type Tcp = tokio_core::net::TcpStream;
 
 /// Provides some utility error types, as well as a trait for spawning futures on the default event
 /// loop.
@@ -166,6 +170,8 @@ cfg_if! {
     if #[cfg(feature = "tls")] {
         extern crate tokio_tls;
         pub extern crate native_tls;
+        /// TlsStream<TcpStream>
+        pub type Tls = tokio_tls::TlsStream<::tokio_core::net::TcpStream>;
 
         pub use client::tls::TlsClientContext;
     } else {}
